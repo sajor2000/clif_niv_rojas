@@ -1,0 +1,10 @@
+config.json
+output/
+output_to_share/
+.DS_*
+.venv/
+__pycache__/
+*.pyc
+*.log
+uv.lock
+*.nbconvert.ipynb

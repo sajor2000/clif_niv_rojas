@@ -1,0 +1,6 @@
+{
+    "site": "site name in lower",
+    "data_directory": "path to clif tables",
+    "filetype": "parquet",
+    "timezone": "US/Central : put your timezone"
+}
