@@ -7,5 +7,4 @@ output_to_share/
 __pycache__/
 *.pyc
 *.log
-uv.lock
 *.nbconvert.ipynb
