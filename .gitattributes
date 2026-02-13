@@ -1,0 +1,10 @@
+# Enforce LF line endings across all platforms
+* text=auto eol=lf
+
+# Binary files
+*.parquet binary
+*.png binary
+*.jpg binary
+*.pdf binary
+*.docx binary
+*.xlsx binary

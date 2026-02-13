@@ -1,10 +1,15 @@
 #!/bin/bash
 set -euo pipefail
 
+# Navigate to repo root (directory containing this script)
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+cd "$SCRIPT_DIR"
+
 LOG_FILE="pipeline_$(date +%Y%m%d_%H%M%S).log"
 
 echo "=== NIPPV-Pred Pipeline ===" | tee "$LOG_FILE"
 echo "Started: $(date)" | tee -a "$LOG_FILE"
+echo "Working directory: $SCRIPT_DIR" | tee -a "$LOG_FILE"
 echo "" | tee -a "$LOG_FILE"
 
 echo "[Step 0/5] Installing dependencies..." | tee -a "$LOG_FILE"

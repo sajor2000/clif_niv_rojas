@@ -1,6 +1,6 @@
 {
-    "site": "site name in lower",
-    "data_directory": "path to clif tables",
+    "site": "your_site_name_lowercase",
+    "data_directory": "/absolute/path/to/your/clif/parquet/files",
     "filetype": "parquet",
-    "timezone": "US/Central : put your timezone"
+    "timezone": "US/Central"
 }
