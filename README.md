@@ -10,7 +10,7 @@ This project uses multicenter ICU data standardized to the CLIF format to valida
 
 - **Author:** Connor P. Lafeber (Rush University, M.S. thesis, 2025)
 - **Design:** Federated meta-analysis -- patient-level data never leaves the originating institution; only aggregate statistical results are shared
-- **Contact:** [Connor Lafeber](mailto:connor_p_lafeber@rush.edu) / [Jose Rojas](mailto:jose_c_rojas@rush.edu), Rush University Medical Center
+- **Contact:** [Connor Lafeber](mailto:connor_p_lafeber@rush.edu), Rush University Medical Center
 
 ## Objective
 
