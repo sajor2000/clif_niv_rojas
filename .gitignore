@@ -8,3 +8,7 @@ __pycache__/
 *.pyc
 *.log
 *.nbconvert.ipynb
+lead_site_analysis/output/
+lead_site_analysis/figures/
+lead_site_analysis/tables/
+all_site_results/*/
