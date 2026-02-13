@@ -56,20 +56,6 @@ Unless otherwise specified, physiologic predictors are defined as the **median v
 | 11 | `age_scale * ph_scale` | Interaction | Age Scale x pH Scale | Age-acidosis interaction |
 | 12 | `pco2_scale * rr_scale` | Interaction | pCO2 Scale x RR Scale | Hypercapnia-respiratory rate interaction |
 
-## Key Findings
-
-Pooled fixed-effects meta-analysis across participating sites identified the following independent predictors of NIPPV failure:
-
-| Predictor | Pooled Adjusted OR | 95% CI | p-value |
-|---|---|---|---|
-| Male sex (vs. female) | 0.362 | 0.181-0.727 | 0.004 |
-| Lower pH (per 0.1 unit) | 0.583 | 0.372-0.914 | 0.018 |
-| Lower MAP (per mmHg) | 0.949 | 0.909-0.991 | 0.018 |
-| Higher HR (per 10 bpm) | 1.241 | 1.006-1.531 | 0.044 |
-| Higher FiO2 | 37.49 | 5.01-280.60 | <0.001 |
-
-Higher FiO2 requirements, lower pH, lower MAP, higher heart rate, and male sex were each independently associated with NIPPV failure after adjustment.
-
 ## Prerequisites
 
 - **Python** >= 3.12
@@ -124,8 +110,6 @@ The pipeline produces **14 CSV files** in `output_to_share/`. All files must be 
 | `vif_NoInteraction.csv` | Variance inflation factors |
 | `vcov_matrix_NoInteraction.csv` | Variance-covariance matrix (no interaction) |
 | `vcov_matrix_Interaction.csv` | Variance-covariance matrix (with interactions) |
-
-See [`output_schema.md`](output_schema.md) for detailed column descriptions and a validation checklist.
 
 ## Statistical Methods
 
@@ -182,8 +166,7 @@ After the pipeline completes successfully:
 
 1. Verify all **14 CSV files** are present in `output_to_share/`
 2. Check the pipeline log for "Pipeline completed successfully"
-3. Review the validation checklist in [`output_schema.md`](output_schema.md)
-4. Upload all 14 files from `output_to_share/` to the shared Box folder per CLIF consortium protocol
+3. Upload all 14 files from `output_to_share/` to the shared Box folder per CLIF consortium protocol
 
 **Important:** Only aggregate statistics are shared -- no patient-level data leaves your institution.
 
