@@ -6,6 +6,7 @@ import statsmodels.api as sm
 import statsmodels.formula.api as smf
 from scipy.stats import chi2_contingency, ttest_ind
 from statsmodels.stats.outliers_influence import variance_inflation_factor
+from scipy.special import logit as scipy_logit
 from sklearn.metrics import roc_auc_score, brier_score_loss
 from sklearn.base import BaseEstimator
 if not hasattr(BaseEstimator, '_validate_data'):
@@ -164,10 +165,12 @@ print(multivariable_results)
 # =====================================================
 
 # Variance Inflation Factors (multicollinearity check)
-X_vif = nippv_data[predictors].dropna()
+# Note: variance_inflation_factor requires a constant column in the design matrix
+# (statsmodels issues #2376, #6249). Add intercept, then compute VIF for predictors only.
+X_vif = sm.add_constant(nippv_data[predictors].dropna())
 vif_data = pd.DataFrame({
-    'Variable': X_vif.columns,
-    'VIF': [variance_inflation_factor(X_vif.values, i) for i in range(X_vif.shape[1])]
+    'Variable': predictors,
+    'VIF': [variance_inflation_factor(X_vif.values, i + 1) for i in range(len(predictors))]
 })
 print("\nVariance Inflation Factors:")
 print(vif_data.to_string(index=False))
@@ -216,7 +219,7 @@ for b in range(n_boot):
         p_train = boot_model.predict(boot_data)
         auc_train = roc_auc_score(boot_data['failure'], p_train)
         brier_train = brier_score_loss(boot_data['failure'], p_train)
-        lp_train = np.log(np.clip(p_train, 1e-10, 1 - 1e-10) / (1 - np.clip(p_train, 1e-10, 1 - 1e-10)))
+        lp_train = scipy_logit(np.clip(p_train, 1e-10, 1 - 1e-10))
         cal_train = sm.GLM(boot_data['failure'], sm.add_constant(lp_train),
                            family=sm.families.Binomial()).fit()
         slope_train = cal_train.params.iloc[1]
@@ -224,7 +227,7 @@ for b in range(n_boot):
         p_test = boot_model.predict(nippv_data)
         auc_test = roc_auc_score(nippv_data['failure'], p_test)
         brier_test = brier_score_loss(nippv_data['failure'], p_test)
-        lp_test = np.log(np.clip(p_test, 1e-10, 1 - 1e-10) / (1 - np.clip(p_test, 1e-10, 1 - 1e-10)))
+        lp_test = scipy_logit(np.clip(p_test, 1e-10, 1 - 1e-10))
         cal_test = sm.GLM(nippv_data['failure'], sm.add_constant(lp_test),
                           family=sm.families.Binomial()).fit()
         slope_test = cal_test.params.iloc[1]

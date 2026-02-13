@@ -12,7 +12,7 @@ import numpy as np
 import os
 import glob
 from statsmodels.stats.meta_analysis import combine_effects
-from scipy.stats import chi2
+from scipy.stats import chi2, norm
 
 # =====================================================
 # PATHS
@@ -147,6 +147,11 @@ def pool_regression_results(df, model_label):
         # tau-squared (DerSimonian-Laird)
         tau2 = round(res.tau2, 6) if hasattr(res, 'tau2') else np.nan
 
+        # Compute Wald p-value from z = eff / sd_eff
+        # (summary_frame does not include pvalue — only eff, sd_eff, ci_low, ci_upp, w_fe, w_re)
+        fe_z = fe['eff'] / fe['sd_eff'] if fe['sd_eff'] > 0 else 0.0
+        fe_pvalue = 2 * norm.sf(abs(fe_z))
+
         row = {
             'Variable': var,
             'n_sites': len(effects),
@@ -155,7 +160,7 @@ def pool_regression_results(df, model_label):
             'pooled_OR': np.exp(fe['eff']),
             'pooled_CI_lower': np.exp(fe['ci_low']),
             'pooled_CI_upper': np.exp(fe['ci_upp']),
-            'pooled_p': fe['pvalue'] if 'pvalue' in fe.index else np.nan,
+            'pooled_p': fe_pvalue,
             'Q': round(Q, 4),
             'Q_p': round(Q_p, 4) if not np.isnan(Q_p) else np.nan,
             'I2': round(I2, 1),
@@ -167,12 +172,14 @@ def pool_regression_results(df, model_label):
 
         # Include random-effects estimates when I² > 25% (moderate+ heterogeneity)
         if I2 > 25:
+            re_z = re['eff'] / re['sd_eff'] if re['sd_eff'] > 0 else 0.0
+            re_pvalue = 2 * norm.sf(abs(re_z))
             row['RE_pooled_log_OR'] = re['eff']
             row['RE_pooled_SE'] = re['sd_eff']
             row['RE_pooled_OR'] = np.exp(re['eff'])
             row['RE_pooled_CI_lower'] = np.exp(re['ci_low'])
             row['RE_pooled_CI_upper'] = np.exp(re['ci_upp'])
-            row['RE_pooled_p'] = re['pvalue'] if 'pvalue' in re.index else np.nan
+            row['RE_pooled_p'] = re_pvalue
             print(f"  NOTE: {var} I²={I2:.0f}% — random-effects estimate also reported")
 
         pooled_rows.append(row)
