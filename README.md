@@ -111,50 +111,9 @@ The pipeline produces **14 CSV files** in `output_to_share/`. All files must be 
 | `vcov_matrix_NoInteraction.csv` | Variance-covariance matrix (no interaction) |
 | `vcov_matrix_Interaction.csv` | Variance-covariance matrix (with interactions) |
 
-## Lead-Site Meta-Analysis (Pooling Pipeline)
+## Lead-Site Meta-Analysis
 
-After all sites have uploaded their 14 CSV files, the lead site runs the pooling pipeline to generate pooled results, figures, and tables. **Participating sites do NOT run this.**
-
-### Setup
-
-Each site places their 14 CSVs into a subdirectory under `all_site_results/`:
-
-```
-all_site_results/
-    rush/           # 14 CSVs from Rush
-    bidmc/          # 14 CSVs from BIDMC
-    ...
-```
-
-### Run
-
-```bash
-./lead_site_analysis/run_pooling.sh
-```
-
-### Pipeline
-
-| Step | Script | Description |
-|------|--------|-------------|
-| 1 | `lead_site_analysis/01_pool_results.py` | Inverse-variance fixed-effects meta-analysis across all sites |
-| 2 | `lead_site_analysis/02_figures.py` | Forest plots, funnel plots, CONSORT diagram, diagnostics comparison |
-| 3 | `lead_site_analysis/03_tables.py` | Publication-ready tables (regression results, sensitivity, heterogeneity) |
-
-### Output
-
-| Directory | Contents |
-|-----------|----------|
-| `lead_site_analysis/output/` | Pooled CSVs (univariate, multivariable, Firth, diagnostics, consort) |
-| `lead_site_analysis/figures/` | Forest plots, funnel plot, CONSORT diagram, sensitivity comparison, diagnostics |
-| `lead_site_analysis/tables/` | Table 1 (descriptive), Table 2 (regression), Table 3 (sensitivity), Table 4 (diagnostics), Table 5 (heterogeneity), Table 6 (CONSORT), Table 7 (missingness) |
-
-### Figures Generated
-
-- **Forest plots** -- site-specific estimates (squares sized by weight) with pooled diamond, for univariate, no-interaction, and interaction models
-- **Funnel plot** -- SE vs log(OR) for publication bias assessment
-- **CONSORT flow diagram** -- pooled cohort selection across all sites
-- **Diagnostics comparison** -- AUC, Brier score, calibration slope by site
-- **Sensitivity plots** -- MLE vs Firth side-by-side comparison
+After all sites upload their results, the lead site (Rush) pools them into publication figures and tables. See [`lead_site_analysis/README.md`](lead_site_analysis/README.md) for detailed instructions. **Participating sites do NOT run this.**
 
 ## Statistical Methods
 
