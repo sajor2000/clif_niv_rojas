@@ -9,7 +9,6 @@ Noninvasive positive pressure ventilation (NIPPV) is a standard first-line treat
 This project uses multicenter ICU data standardized to the CLIF format to validate predictors of NIPPV failure across institutions, supporting earlier escalation decisions at the bedside.
 
 - **Author:** Connor P. Lafeber (Rush University, M.S. thesis, 2025)
-- **Participating Sites:** Rush University Medical Center, Beth Israel Deaconess Medical Center
 - **Design:** Federated meta-analysis -- patient-level data never leaves the originating institution; only aggregate statistical results are shared
 - **Contact:** [Connor Lafeber](mailto:connor_p_lafeber@rush.edu) / [Jose Rojas](mailto:jose_c_rojas@rush.edu), Rush University Medical Center
 
@@ -101,10 +100,10 @@ Edit `config.json` with your site-specific values:
 
 ```json
 {
-    "site": "bidmc",
+    "site": "rush",
     "data_directory": "/data/clif/parquet",
     "filetype": "parquet",
-    "timezone": "US/Eastern"
+    "timezone": "US/Central"
 }
 ```
 
