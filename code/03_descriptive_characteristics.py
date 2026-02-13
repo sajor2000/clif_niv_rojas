@@ -84,6 +84,13 @@ def pvalue_categorical_chisq(df, var):
     if tab.shape[0] < 2:
         return "NA"
 
+    # Use Fisher's exact test for 2x2 tables with any expected cell count < 5
+    if tab.shape == (2, 2):
+        expected = stats.chi2_contingency(tab)[3]
+        if (expected < 5).any():
+            p = stats.fisher_exact(tab)[1]
+            return format_pvalue(p)
+
     p = stats.chi2_contingency(tab)[1]
     return format_pvalue(p)
 

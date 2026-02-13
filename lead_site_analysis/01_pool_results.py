@@ -129,9 +129,10 @@ def pool_regression_results(df, model_label):
         res = combine_effects(effects, variances, method_re="dl",
                               use_t=False, row_names=site_labels)
 
-        # Extract fixed-effects results
-        fe = res.summary_frame().loc['fixed effect']
-        re = res.summary_frame().loc['random effect']
+        # Extract fixed-effects and random-effects results
+        summary = res.summary_frame()
+        fe = summary.loc['fixed effect']
+        re = summary.loc['random effect']
 
         # Heterogeneity: Cochran's Q
         weights = 1.0 / variances
@@ -143,7 +144,10 @@ def pool_regression_results(df, model_label):
         # I-squared
         I2 = max(0, (Q - Q_df) / Q) * 100 if Q > 0 else 0.0
 
-        pooled_rows.append({
+        # tau-squared (DerSimonian-Laird)
+        tau2 = round(res.tau2, 6) if hasattr(res, 'tau2') else np.nan
+
+        row = {
             'Variable': var,
             'n_sites': len(effects),
             'pooled_log_OR': fe['eff'],
@@ -155,11 +159,23 @@ def pool_regression_results(df, model_label):
             'Q': round(Q, 4),
             'Q_p': round(Q_p, 4) if not np.isnan(Q_p) else np.nan,
             'I2': round(I2, 1),
-            'tau2': round(res.tau2, 6) if hasattr(res, 'tau2') else np.nan,
+            'tau2': tau2,
             'total_N': int(var_data['N'].sum()),
             'total_events': int(var_data['N_events'].sum()),
             'model': model_label,
-        })
+        }
+
+        # Include random-effects estimates when I² > 25% (moderate+ heterogeneity)
+        if I2 > 25:
+            row['RE_pooled_log_OR'] = re['eff']
+            row['RE_pooled_SE'] = re['sd_eff']
+            row['RE_pooled_OR'] = np.exp(re['eff'])
+            row['RE_pooled_CI_lower'] = np.exp(re['ci_low'])
+            row['RE_pooled_CI_upper'] = np.exp(re['ci_upp'])
+            row['RE_pooled_p'] = re['pvalue'] if 'pvalue' in re.index else np.nan
+            print(f"  NOTE: {var} I²={I2:.0f}% — random-effects estimate also reported")
+
+        pooled_rows.append(row)
 
     return pd.DataFrame(pooled_rows)
 

@@ -408,10 +408,11 @@ def _(clif, pd, wide_df_with_bmi):
 
     # Step 1: Get hospitalization metadata (EXCLUDE age_at_admission - already in wide_df!)
     hosp_metadata = clif.hospitalization.df[
-        ['hospitalization_id', 'patient_id', 'admission_dttm', 'discharge_category']
+        ['hospitalization_id', 'patient_id', 'admission_dttm', 'discharge_dttm', 'discharge_category']
     ].copy()
     hosp_metadata['hospitalization_id'] = hosp_metadata['hospitalization_id'].astype(str)
     hosp_metadata['admission_dttm'] = pd.to_datetime(hosp_metadata['admission_dttm'])
+    hosp_metadata['discharge_dttm'] = pd.to_datetime(hosp_metadata['discharge_dttm'])
 
     # Step 2: Get patient demographics (sex_category needed by Rush notebook)
     patient_demo = clif.patient.df[['patient_id', 'sex_category']].copy()

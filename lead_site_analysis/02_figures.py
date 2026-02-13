@@ -231,7 +231,7 @@ def forest_plot(pooled_df, site_df, title, filename, show_heterogeneity=True):
 
             ax.plot([ci_lo, ci_hi], [y_pos, y_pos], color=site_colors[site_idx],
                     linewidth=1.0, zorder=2)
-            marker_size = max(4, min(12, weight * 0.3))
+            marker_size = max(4, min(12, np.sqrt(weight) * 1.5))
             ax.plot(or_val, y_pos, 's', color=site_colors[site_idx],
                     markersize=marker_size, zorder=3)
 
@@ -305,6 +305,7 @@ def funnel_plot(site_df, pooled_df, title, filename):
         print(f"  Skipping {filename}: no data")
         return
 
+    n_sites = site_df['site'].nunique()
     site_df = site_df[site_df['Variable'] != 'Intercept'].copy()
 
     fig, ax = plt.subplots(figsize=(8, 6))
@@ -324,7 +325,10 @@ def funnel_plot(site_df, pooled_df, title, filename):
 
     ax.set_xlabel('log(OR)', fontsize=10)
     ax.set_ylabel('Standard Error', fontsize=10)
-    ax.set_title(title, fontsize=12, fontweight='bold')
+    plot_title = title
+    if n_sites < 5:
+        plot_title += f'\n(n={n_sites} sites — interpret with caution)'
+    ax.set_title(plot_title, fontsize=12, fontweight='bold')
 
     # Legend with variable names
     handles = [mpatches.Patch(color=var_colors[v], label=get_label(v))

@@ -87,9 +87,57 @@ cal_model = sm.GLM(
 cal_intercept = cal_model.params.iloc[0]   # calibration-in-the-large (ideal=0)
 cal_slope = cal_model.params.iloc[1]       # calibration slope (ideal=1)
 brier = brier_score_loss(nippv_data['failure'], predicted_probs)
-print(f"Calibration intercept: {cal_intercept:.4f}")
-print(f"Calibration slope: {cal_slope:.4f}")
-print(f"Brier score: {brier:.4f}")
+print(f"Apparent calibration intercept: {cal_intercept:.4f}")
+print(f"Apparent calibration slope: {cal_slope:.4f}")
+print(f"Apparent Brier score: {brier:.4f}")
+
+# Bootstrap optimism-corrected internal validation (Harrell 1996, Steyerberg 2019)
+print("\nBootstrap internal validation (200 iterations)...")
+n_boot = 200
+rng = np.random.default_rng(42)
+n_obs = len(nippv_data)
+optimism_auc, optimism_slope, optimism_brier = [], [], []
+
+for b in range(n_boot):
+    idx = rng.integers(0, n_obs, size=n_obs)
+    boot_data = nippv_data.iloc[idx].reset_index(drop=True)
+    try:
+        boot_model = smf.logit(formula=final_formula, data=boot_data).fit(disp=0)
+        # Training performance (on bootstrap sample)
+        p_train = boot_model.predict(boot_data)
+        auc_train = roc_auc_score(boot_data['failure'], p_train)
+        brier_train = brier_score_loss(boot_data['failure'], p_train)
+        lp_train = np.log(np.clip(p_train, 1e-10, 1 - 1e-10) / (1 - np.clip(p_train, 1e-10, 1 - 1e-10)))
+        cal_train = sm.GLM(boot_data['failure'], sm.add_constant(lp_train),
+                           family=sm.families.Binomial()).fit()
+        slope_train = cal_train.params.iloc[1]
+        # Test performance (on original data)
+        p_test = boot_model.predict(nippv_data)
+        auc_test = roc_auc_score(nippv_data['failure'], p_test)
+        brier_test = brier_score_loss(nippv_data['failure'], p_test)
+        lp_test = np.log(np.clip(p_test, 1e-10, 1 - 1e-10) / (1 - np.clip(p_test, 1e-10, 1 - 1e-10)))
+        cal_test = sm.GLM(nippv_data['failure'], sm.add_constant(lp_test),
+                          family=sm.families.Binomial()).fit()
+        slope_test = cal_test.params.iloc[1]
+        optimism_auc.append(auc_train - auc_test)
+        optimism_slope.append(slope_train - slope_test)
+        optimism_brier.append(brier_train - brier_test)
+    except Exception:
+        continue
+
+if optimism_auc:
+    corrected_auc = auc - np.mean(optimism_auc)
+    corrected_slope = cal_slope - np.mean(optimism_slope)
+    corrected_brier = brier - np.mean(optimism_brier)
+    print(f"Bootstrap iterations completed: {len(optimism_auc)}/{n_boot}")
+    print(f"Optimism-corrected AUC: {corrected_auc:.4f} (optimism: {np.mean(optimism_auc):.4f})")
+    print(f"Optimism-corrected cal slope: {corrected_slope:.4f} (optimism: {np.mean(optimism_slope):.4f})")
+    print(f"Optimism-corrected Brier: {corrected_brier:.4f} (optimism: {np.mean(optimism_brier):.4f})")
+else:
+    corrected_auc = auc
+    corrected_slope = cal_slope
+    corrected_brier = brier
+    print("WARNING: All bootstrap iterations failed — using apparent values")
 
 # Events per variable (EPV) — interaction model has 12 parameters
 n_params_interaction = len(main_predictors) + 2  # 10 main + 2 interactions = 12
@@ -116,9 +164,12 @@ diagnostics = pd.DataFrame({
     'N_events': [n1],
     'AUC': [round(auc, 4)],
     'AUC_SE': [round(auc_se, 6)],
+    'AUC_corrected': [round(corrected_auc, 4)],
     'cal_intercept': [round(cal_intercept, 4)],
     'cal_slope': [round(cal_slope, 4)],
+    'cal_slope_corrected': [round(corrected_slope, 4)],
     'brier_score': [round(brier, 4)],
+    'brier_corrected': [round(corrected_brier, 4)],
     'EPV': [round(epv, 1)],
     'n_predictors': [n_params_interaction],
     'log_likelihood': [final_model.llf],

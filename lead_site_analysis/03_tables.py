@@ -250,13 +250,15 @@ def table4_diagnostics():
         print("  Skipping Table 4: no diagnostics data")
         return
 
-    cols = ['site', 'model', 'N', 'N_events', 'AUC', 'AUC_SE',
-            'cal_intercept', 'cal_slope', 'brier_score', 'EPV']
+    cols = ['site', 'model', 'N', 'N_events', 'AUC', 'AUC_SE', 'AUC_corrected',
+            'cal_intercept', 'cal_slope', 'cal_slope_corrected',
+            'brier_score', 'brier_corrected', 'EPV']
     available = [c for c in cols if c in diag.columns]
     out = diag[available].copy()
 
     # Round numeric columns
-    for c in ['AUC', 'AUC_SE', 'cal_intercept', 'cal_slope', 'brier_score', 'EPV']:
+    for c in ['AUC', 'AUC_SE', 'AUC_corrected', 'cal_intercept', 'cal_slope',
+              'cal_slope_corrected', 'brier_score', 'brier_corrected', 'EPV']:
         if c in out.columns:
             out[c] = out[c].round(4)
 
@@ -278,15 +280,24 @@ def table5_heterogeneity():
     multi = sort_by_order(multi)
     rows = []
     for _, r in multi.iterrows():
-        rows.append({
+        row = {
             'Predictor': get_label(r['Variable']),
-            'Pooled OR': f"{r['pooled_OR']:.2f}",
+            'FE Pooled OR': f"{r['pooled_OR']:.2f}",
             'n sites': int(r['n_sites']),
             'Q statistic': f"{r['Q']:.2f}" if pd.notna(r.get('Q')) else '—',
             'Q p-value': fmt_p(r.get('Q_p')),
             'I² (%)': f"{r['I2']:.1f}" if pd.notna(r.get('I2')) else '—',
             'tau²': f"{r['tau2']:.4f}" if pd.notna(r.get('tau2')) else '—',
-        })
+        }
+        # Include RE estimate when I² > 25% (moderate+ heterogeneity)
+        if pd.notna(r.get('RE_pooled_OR')):
+            row['RE Pooled OR (95% CI)'] = (
+                f"{r['RE_pooled_OR']:.2f} "
+                f"({r['RE_pooled_CI_lower']:.2f}-{r['RE_pooled_CI_upper']:.2f})"
+            )
+        else:
+            row['RE Pooled OR (95% CI)'] = '—'
+        rows.append(row)
 
     out = pd.DataFrame(rows)
     out.to_csv(os.path.join(TABLE_DIR, 'table5_heterogeneity.csv'), index=False)
